@@ -3,7 +3,7 @@ from ledger.common import SimpleTransactionStorage, Ledger, DatabaseTransactionS
 from ledger.models import Transaction
 from ledger.tests.models import TestClient, TestService
 from ledger.tests.stub import LedgerClient, LedgerService
-from ledger.transactions import CreditTransaction, DepositTransaction
+from ledger.transactions import CreditTransaction, DepositTransaction, TRANSACTION_DEPOSIT
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -30,6 +30,9 @@ class TestTransactionSimpleStorage(TestCase):
 
 
 class TestDatabaseStorage(TestCase):
+    client = None
+    service = None
+    storage = None
     @classmethod
     def setUpClass(cls):
         from django.conf import settings
@@ -39,28 +42,61 @@ class TestDatabaseStorage(TestCase):
         loading.cache.loaded = False
         call_command('syncdb', verbosity=0)
 
-    def test_save_transaction_to_db(self):
-        database_storage = DatabaseTransactionStorage()
+    def setUp(self):
+        self.client = TestClient()
+        self.client.name = "Azamat Tokhtaev"
+        self.client.save()
+        self.service = TestService()
+        self.service.name = "NEO Service"
+        self.service.save()
+        self.storage = DatabaseTransactionStorage()
 
-        client = TestClient()
-        client.name = "Azamat Tokhtaev"
-        client.save()
-        service = TestService()
-        service.name = "NEO Service"
-        service.save()
+    def test_save_transaction_to_db(self):
 
         deposit_transaction = DepositTransaction()
-        deposit_transaction.agent_from = client
-        deposit_transaction.agent_to = service
+        deposit_transaction.agent_from = self.client
+        deposit_transaction.agent_to = self.service
         deposit_transaction.amount = 200
         deposit_transaction.batch_id = 'custom_batch_id'
 
-        database_storage.saveTransaction(deposit_transaction)
+        self.storage.saveTransaction(deposit_transaction)
 
-        db_transaction = Transaction.objects.get(agent_from_id=client.pk, agent_from_content_type=ContentType.objects.get_for_model(client))
+        db_transaction = Transaction.objects.get(agent_from_id=self.client.pk, agent_from_content_type=ContentType.objects.get_for_model(self.client))
 
-        self.assertEqual(db_transaction.agent_from, client)
-        self.assertEqual(db_transaction.agent_to, service)
-        self.assertEqual(1, len(database_storage.getTransactionsFrom(client)))
-        self.assertEqual(1, len(database_storage.getTransactionsTo(service)))
+        self.assertEqual(db_transaction.agent_from, self.client)
+        self.assertEqual(db_transaction.agent_to, self.service)
+        self.assertEqual(1, len(self.storage.getTransactionsFrom(self.client)))
+        self.assertEqual(1, len(self.storage.getTransactionsTo(self.service)))
+
+    def test_get_deposit_transactions(self):
+        deposit_transaction = DepositTransaction()
+        deposit_transaction.agent_from = self.client
+        deposit_transaction.agent_to = self.service
+        deposit_transaction.amount = 1000
+        deposit_transaction.batch_id = 'custom_batch_id'
+        self.storage.saveTransaction(deposit_transaction)
+        transaction = self.storage.filter(self.storage.getTransactionsFrom(self.client), TRANSACTION_DEPOSIT)[0]
+        self.assertEqual(1000, transaction.amount)
+
+    def test_sum(self):
+        deposit_transaction = DepositTransaction()
+        deposit_transaction.agent_from = self.client
+        deposit_transaction.agent_to = self.service
+        deposit_transaction.amount = 1000
+        deposit_transaction.batch_id = 'custom_batch_id'
+        self.storage.saveTransaction(deposit_transaction)
+
+        deposit_transaction = DepositTransaction()
+        deposit_transaction.agent_from = self.client
+        deposit_transaction.agent_to = self.service
+        deposit_transaction.amount = 200
+        deposit_transaction.batch_id = 'custom_batch_id'
+        self.storage.saveTransaction(deposit_transaction)
+
+        sum = self.storage.sum(self.storage.filter(self.storage.getTransactionsFrom(self.client), TRANSACTION_DEPOSIT))
+        self.assertEqual(1200, sum)
+
+
+
+
 

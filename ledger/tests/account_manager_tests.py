@@ -1,7 +1,7 @@
 from django.test import TestCase
 from ledger.common import Ledger, SimpleTransactionStorage, AccountManager
 from ledger.tests.stub import LedgerService, LedgerClient
-from ledger.transactions import CreditTransaction, DebitTransaction, DepositTransaction, WithdrawTransaction
+from ledger.transactions import CreditTransaction, DebitTransaction, DepositTransaction, WithdrawTransaction, TRANSACTION_DEPOSIT
 
 
 class TestAccountManager(TestCase):
@@ -105,6 +105,16 @@ class TestAccountManager(TestCase):
 
         self.assertEqual(100, self.account_manager.getBalance(self.client))
         self.assertEqual(100, self.account_manager.getBalance(self.service_provider))
+
+    def test_get_total_deposit(self):
+        deposit_transaction = DepositTransaction()
+        deposit_transaction.amount = 200
+        deposit_transaction.agent_from = self.client
+        deposit_transaction.agent_to = self.service_provider
+        self.ledger.addTransaction(deposit_transaction)
+        self.assertEqual(200, self.account_manager.getTotalBy(self.client, TRANSACTION_DEPOSIT))
+
+
 
 
 

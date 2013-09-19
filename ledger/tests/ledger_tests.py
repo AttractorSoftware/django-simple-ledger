@@ -18,7 +18,7 @@ class TestLedger(TestCase):
     def test_add_empty_transaction(self):
 
         self.assertRaises(ValueError, self.ledger.addTransaction, transaction=None)
-        self.assertRaisesMessage(ValueError,"Empty transaction is not allowed", self.ledger.addTransaction, transaction=None)
+        self.assertRaisesMessage(ValueError, "Empty transaction is not allowed", self.ledger.addTransaction, transaction=None)
 
     def test_client_pays_advance_payment_to_provider(self):
         transaction = DepositTransaction()

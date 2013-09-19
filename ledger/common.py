@@ -1,7 +1,9 @@
 from django.contrib.contenttypes.models import ContentType
+from django.db.models.aggregates import Sum
 from ledger.models import Transaction
 from ledger.transactions import TRANSACTION_DEPOSIT, TRANSACTION_CREDIT, TRANSACTION_DEBIT, TRANSACTION_WITHDRAW
 import time
+
 
 class TransactionStorage(object):
     def saveTransaction(self, transaction):
@@ -11,6 +13,18 @@ class TransactionStorage(object):
         raise NotImplementedError
 
     def getTransactionsTo(self, agent):
+        raise NotImplementedError
+
+    def getDepositTransactionsFrom(self, agent):
+        raise NotImplementedError
+
+    def getCreditTransactionsFrom(self, agent):
+        raise NotImplementedError
+
+    def getWithdrawTransactionsFrom(self, agent):
+        raise NotImplementedError
+
+    def getDebitTransactionsFrom(self, agent):
         raise NotImplementedError
 
 
@@ -37,6 +51,19 @@ class SimpleTransactionStorage(TransactionStorage):
                 result.append(transaction)
         return result
 
+    def filter(self, transactions, transaction_type):
+        result = list()
+        for transaction in transactions:
+            if transaction.transaction_type == transaction_type:
+                result.append(transaction)
+        return result
+
+    def sum(self, transactions):
+        result = 0
+        for transaction in transactions:
+            result+=transaction.amount
+        return result
+
     def get_transactions(self):
         return self.transactions
 
@@ -56,6 +83,14 @@ class DatabaseTransactionStorage(TransactionStorage):
 
     def getTransactionsTo(self, agent):
         return Transaction.objects.filter(agent_to_id=agent.pk, agent_to_content_type=ContentType.objects.get_for_model(agent))
+
+    def filter(self, transactions, transaction_type):
+        return transactions.filter(transaction_type=transaction_type)
+
+    def sum(self, transactions):
+        if not len(transactions):
+            return 0
+        return transactions.aggregate(Sum('amount'))['amount__sum']
 
 
 class Ledger(object):
@@ -87,11 +122,12 @@ class Ledger(object):
     def getTransactionsTo(self, agent):
         return self.storage.getTransactionsTo(agent)
 
+    def getSumFor(self, agent, transaction_type):
+        return self.storage.sum(self.storage.filter(self.getTransactionsFrom(agent), transaction_type))
+
     @property
     def transactions(self):
         return self.storage.get_transactions()
-
-
 
 
 class AccountManager(object):
@@ -143,5 +179,11 @@ class AccountManager(object):
         from_balance = self.getAgentFromBalance(agent)
         return to_balance + from_balance
 
+    def getTotalBy(self, client, transaction_type):
+        return self.ledger.getSumFor(client, transaction_type)
 
 
+ledger = Ledger()
+ledger.storage = DatabaseTransactionStorage()
+account_manager = AccountManager()
+account_manager.ledger = ledger

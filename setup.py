@@ -3,7 +3,7 @@ from distutils.core import setup
 from setuptools import find_packages
 setup(
     name='django-simple-ledger',
-    version='0.1',
+    version='0.0.1-dev',
     author=u'Azamat Tokhtaev',
     author_email='krik123@gmail.com',
     url='https://github.com/azamattokhtaev/django-simple-ledger',
