@@ -11,16 +11,16 @@ TRANSACTION_TYPES = ((TRANSACTION_DEBIT, _("Debit")),
 
 
 class Transaction(models.Model):
-    agent_from_content_type = models.ForeignKey(ContentType, related_name='agent_from_type')
-    agent_from_id = models.PositiveIntegerField()
+    agent_from_content_type = models.ForeignKey(ContentType, related_name='agent_from_type', verbose_name=_('From object type'))
+    agent_from_id = models.PositiveIntegerField(verbose_name=_('From object id'))
     agent_from = generic.GenericForeignKey('agent_from_content_type', 'agent_from_id')
 
-    agent_to_content_type = models.ForeignKey(ContentType, related_name='agent_to_type')
-    agent_to_id = models.PositiveIntegerField()
+    agent_to_content_type = models.ForeignKey(ContentType, related_name='agent_to_type', verbose_name=_("To object type"))
+    agent_to_id = models.PositiveIntegerField(verbose_name=_("To object id"))
     agent_to = generic.GenericForeignKey('agent_to_content_type', 'agent_to_id')
 
-    reason_content_type = models.ForeignKey(ContentType, related_name='payment_reason', null=True)
-    reason_id = models.PositiveIntegerField(null=True)
+    reason_content_type = models.ForeignKey(ContentType, related_name='payment_reason', null=True, verbose_name=_("Reason object type"))
+    reason_id = models.PositiveIntegerField(null=True, verbose_name=_("Reason object id"))
     reason = generic.GenericForeignKey('reason_content_type', 'reason_id')
 
     amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_("Amount of money"))
