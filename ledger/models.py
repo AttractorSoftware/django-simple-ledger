@@ -19,6 +19,10 @@ class Transaction(models.Model):
     agent_to_id = models.PositiveIntegerField()
     agent_to = generic.GenericForeignKey('agent_to_content_type', 'agent_to_id')
 
+    reason_content_type = models.ForeignKey(ContentType, related_name='payment_reason', null=True)
+    reason_id = models.PositiveIntegerField(null=True)
+    reason = generic.GenericForeignKey('reason_content_type', 'reason_id')
+
     amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_("Amount of money"))
     transaction_type = models.CharField(choices=TRANSACTION_TYPES, max_length=2, verbose_name=_("Transaction type"))
     batch_id = models.CharField(max_length=255, verbose_name=_("ID of batch transaction"))

@@ -1,9 +1,9 @@
 from django.test import TestCase
 from ledger.common import SimpleTransactionStorage, Ledger, DatabaseTransactionStorage
 from ledger.models import Transaction
-from ledger.tests.models import TestClient, TestService
+from ledger.tests.models import TestClient, TestService, TestReason
 from ledger.tests.stub import LedgerClient, LedgerService
-from ledger.transactions import CreditTransaction, DepositTransaction, TRANSACTION_DEPOSIT
+from ledger.transactions import CreditTransaction, DepositTransaction, TRANSACTION_DEPOSIT, TRANSACTION_CREDIT
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -93,10 +93,24 @@ class TestDatabaseStorage(TestCase):
         deposit_transaction.batch_id = 'custom_batch_id'
         self.storage.saveTransaction(deposit_transaction)
 
-        sum = self.storage.sum(self.storage.filter(self.storage.getTransactionsFrom(self.client), TRANSACTION_DEPOSIT))
-        self.assertEqual(1200, sum)
+        sum_amount = self.storage.sum(self.storage.filter(self.storage.getTransactionsFrom(self.client), TRANSACTION_DEPOSIT))
+        self.assertEqual(1200, sum_amount)
 
+    def test_transaction_reason(self):
+        credit_transaction = CreditTransaction()
+        credit_transaction.agent_from = self.client
+        credit_transaction.agent_to = self.service
+        credit_transaction.amount = 200
+        credit_transaction.batch_id = 'custom_batch_id'
 
+        reason = TestReason()
+        reason.description = "Here is long and funny description object for the payment"
+        reason.save()
+
+        credit_transaction.reason = reason
+        self.storage.saveTransaction(credit_transaction)
+        transaction = self.storage.filter(self.storage.getTransactionsFrom(self.client), TRANSACTION_CREDIT)[0]
+        self.assertEqual(reason, transaction.reason)
 
 
 

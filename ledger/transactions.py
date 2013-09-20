@@ -8,12 +8,14 @@ class SimpleTransaction(object):
     agent_from = None
     agent_to = None
     amount = 0
+    reason = None
 
     def __init__(self):
         self.agent_from = None
         self.agent_to = None
         self.amount = 0
         self.batch_id = None
+        self.reason = None
 
     @property
     def transaction_type(self):

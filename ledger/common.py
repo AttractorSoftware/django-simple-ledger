@@ -76,6 +76,7 @@ class DatabaseTransactionStorage(TransactionStorage):
         db_transaction.amount = transaction.amount
         db_transaction.batch_id = transaction.batch_id
         db_transaction.transaction_type = transaction.transaction_type
+        db_transaction.reason = transaction.reason
         db_transaction.save()
 
     def getTransactionsFrom(self, agent):

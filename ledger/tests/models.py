@@ -6,3 +6,6 @@ class TestClient(models.Model):
 
 class TestService(models.Model):
     name = models.CharField(max_length=50)
+
+class TestReason(models.Model):
+    description = models.TextField()
