@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-09-20 14:23+0600\n"
-"PO-Revision-Date: 2013-09-20 14:23+0600\n"
+"POT-Creation-Date: 2013-09-27 17:45+0600\n"
+"PO-Revision-Date: 2013-09-27 17:45+0600\n"
 "Last-Translator: Azamat Tokhtaev <krik123@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -31,7 +31,7 @@ msgstr "Причина"
 
 #: models.py:7
 msgid "Debit"
-msgstr "Дебит"
+msgstr "Дебет"
 
 #: models.py:8
 msgid "Deposit"
