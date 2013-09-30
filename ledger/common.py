@@ -77,6 +77,7 @@ class DatabaseTransactionStorage(TransactionStorage):
         db_transaction.batch_id = transaction.batch_id
         db_transaction.transaction_type = transaction.transaction_type
         db_transaction.reason = transaction.reason
+        db_transaction.from_deposit = getattr(transaction, 'from_deposit', False)
         db_transaction.save()
 
     def getTransactionsFrom(self, agent):
@@ -85,8 +86,8 @@ class DatabaseTransactionStorage(TransactionStorage):
     def getTransactionsTo(self, agent):
         return Transaction.objects.filter(agent_to_id=agent.pk, agent_to_content_type=ContentType.objects.get_for_model(agent))
 
-    def filter(self, transactions, transaction_type):
-        return transactions.filter(transaction_type=transaction_type)
+    def filter(self, transactions, transaction_type, **kwargs):
+        return transactions.filter(transaction_type=transaction_type, **kwargs)
 
     def sum(self, transactions):
         if not len(transactions):
@@ -123,8 +124,8 @@ class Ledger(object):
     def getTransactionsTo(self, agent):
         return self.storage.getTransactionsTo(agent)
 
-    def getSumFor(self, agent, transaction_type):
-        return self.storage.sum(self.storage.filter(self.getTransactionsFrom(agent), transaction_type))
+    def getSumFor(self, agent, transaction_type, **kwargs):
+        return self.storage.sum(self.storage.filter(self.getTransactionsFrom(agent), transaction_type, **kwargs))
 
     @property
     def transactions(self):
@@ -180,11 +181,44 @@ class AccountManager(object):
         from_balance = self.getAgentFromBalance(agent)
         return to_balance + from_balance
 
-    def getTotalBy(self, client, transaction_type):
-        return self.ledger.getSumFor(client, transaction_type)
+    def getTotalBy(self, client, transaction_type, **kwargs):
+        return self.ledger.getSumFor(client, transaction_type, **kwargs)
+
+
+
 
 
 ledger = Ledger()
 ledger.storage = DatabaseTransactionStorage()
 account_manager = AccountManager()
 account_manager.ledger = ledger
+
+class ClientAccount(object):
+    client = None
+
+    def __init__(self):
+        self.client = None
+
+    @property
+    def debit(self):
+        return account_manager.getTotalBy(self.client, TRANSACTION_DEBIT)
+
+    @property
+    def credit(self):
+        return account_manager.getTotalBy(self.client, TRANSACTION_CREDIT)
+
+    @property
+    def deposit(self):
+        return account_manager.getTotalBy(self.client, TRANSACTION_DEPOSIT) - account_manager.getTotalBy(
+            self.client, TRANSACTION_DEBIT, from_deposit=True)
+
+    @property
+    def total(self):
+        return self.debit
+
+    @property
+    def debt(self):
+        debt = self.credit - self.total
+        if debt < 0:
+            return debt
+        return debt

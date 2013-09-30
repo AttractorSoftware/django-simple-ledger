@@ -36,7 +36,7 @@ class CreditTransaction(SimpleTransaction):
 
 class DebitTransaction(SimpleTransaction):
     transaction = None
-
+    from_deposit = False
     @property
     def transaction_type(self):
         return TRANSACTION_DEBIT

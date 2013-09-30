@@ -30,6 +30,7 @@ class Transaction(models.Model):
 
     transaction = models.ForeignKey('self', null=True, blank=True, related_name='reasoning_transaction',
                                     verbose_name=_("Related trasaction"))
+    from_deposit = models.BooleanField(default=False, verbose_name=_("From deposit"), blank=True)
 
     class Meta:
         verbose_name = _("Ledger transaction")
