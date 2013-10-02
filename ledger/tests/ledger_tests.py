@@ -17,8 +17,8 @@ class TestLedger(TestCase):
 
     def test_add_empty_transaction(self):
 
-        self.assertRaises(ValueError, self.ledger.addTransaction, transaction=None)
-        self.assertRaisesMessage(ValueError, "Empty transaction is not allowed", self.ledger.addTransaction, transaction=None)
+        self.assertRaises(ValueError, self.ledger.add_transaction, transaction=None)
+        self.assertRaisesMessage(ValueError, "Empty transaction is not allowed", self.ledger.add_transaction, transaction=None)
 
     def test_client_pays_advance_payment_to_provider(self):
         transaction = DepositTransaction()
@@ -26,9 +26,9 @@ class TestLedger(TestCase):
         transaction.agent_from = self.client
         transaction.agent_to = self.service_provider
 
-        self.ledger.addTransaction(transaction)
-        self.assertEqual(1, len(self.ledger.getTransactionsFrom(self.client)))
-        self.assertEqual(1, len(self.ledger.getTransactionsTo(self.service_provider)))
+        self.ledger.add_transaction(transaction)
+        self.assertEqual(1, len(self.ledger.get_transactions_from(self.client)))
+        self.assertEqual(1, len(self.ledger.get_transactions_to(self.service_provider)))
 
     def test_client_is_billed_and_pays_full(self):
         credit_transaction = CreditTransaction()
@@ -36,7 +36,7 @@ class TestLedger(TestCase):
         credit_transaction.agent_to = self.service_provider
         credit_transaction.amount = 1000
 
-        self.ledger.addTransaction(credit_transaction)
+        self.ledger.add_transaction(credit_transaction)
 
         debit_transaction = DebitTransaction()
         debit_transaction.transaction = credit_transaction
@@ -44,10 +44,10 @@ class TestLedger(TestCase):
         debit_transaction.agent_from = self.client
         debit_transaction.agent_to = self.service_provider
 
-        self.ledger.addTransaction(debit_transaction)
-        self.assertEqual(2, len(self.ledger.getTransactionsFrom(self.client)))
-        self.assertEqual(0, len(self.ledger.getTransactionsTo(self.client)))
-        self.assertEqual(2, len(self.ledger.getTransactionsTo(self.service_provider)))
+        self.ledger.add_transaction(debit_transaction)
+        self.assertEqual(2, len(self.ledger.get_transactions_from(self.client)))
+        self.assertEqual(0, len(self.ledger.get_transactions_to(self.client)))
+        self.assertEqual(2, len(self.ledger.get_transactions_to(self.service_provider)))
 
     def test_add_batch_transactions(self):
         transactions = list()
@@ -63,12 +63,12 @@ class TestLedger(TestCase):
         debit_transaction.agent_to = self.service_provider
         transactions.append(credit_transaction)
         transactions.append(debit_transaction)
-        self.ledger.addBatch(transactions, 'helo')
+        self.ledger.add_batch(transactions, 'helo')
 
-        self.assertEqual(2, len(self.ledger.getTransactionsFrom(self.client)))
-        self.assertEqual(0, len(self.ledger.getTransactionsTo(self.client)))
-        self.assertEqual(2, len(self.ledger.getTransactionsTo(self.service_provider)))
-        self.assertEqual('helo', self.ledger.getTransactionsTo(self.service_provider)[0].batch_id)
+        self.assertEqual(2, len(self.ledger.get_transactions_from(self.client)))
+        self.assertEqual(0, len(self.ledger.get_transactions_to(self.client)))
+        self.assertEqual(2, len(self.ledger.get_transactions_to(self.service_provider)))
+        self.assertEqual('helo', self.ledger.get_transactions_to(self.service_provider)[0].batch_id)
 
 
 

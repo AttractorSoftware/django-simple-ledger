@@ -24,9 +24,9 @@ class TestTransactionSimpleStorage(TestCase):
         ledger = Ledger()
         ledger.storage = storage
         transaction = self._create_transaction(CreditTransaction, self.client, self.service_provider, 100)
-        ledger.addTransaction(transaction)
-        self.assertEqual(1, len(storage.getTransactionsFrom(self.client)))
-        self.assertEqual(1, len(storage.getTransactionsTo(self.service_provider)))
+        ledger.add_transaction(transaction)
+        self.assertEqual(1, len(storage.get_transactions_from(self.client)))
+        self.assertEqual(1, len(storage.get_transactions_to(self.service_provider)))
 
 
 class TestDatabaseStorage(TestCase):
@@ -59,14 +59,14 @@ class TestDatabaseStorage(TestCase):
         deposit_transaction.amount = 200
         deposit_transaction.batch_id = 'custom_batch_id'
 
-        self.storage.saveTransaction(deposit_transaction)
+        self.storage.save_transaction(deposit_transaction)
 
         db_transaction = Transaction.objects.get(agent_from_id=self.client.pk, agent_from_content_type=ContentType.objects.get_for_model(self.client))
 
         self.assertEqual(db_transaction.agent_from, self.client)
         self.assertEqual(db_transaction.agent_to, self.service)
-        self.assertEqual(1, len(self.storage.getTransactionsFrom(self.client)))
-        self.assertEqual(1, len(self.storage.getTransactionsTo(self.service)))
+        self.assertEqual(1, len(self.storage.get_transactions_from(self.client)))
+        self.assertEqual(1, len(self.storage.get_transactions_to(self.service)))
 
     def test_get_deposit_transactions(self):
         deposit_transaction = DepositTransaction()
@@ -74,8 +74,8 @@ class TestDatabaseStorage(TestCase):
         deposit_transaction.agent_to = self.service
         deposit_transaction.amount = 1000
         deposit_transaction.batch_id = 'custom_batch_id'
-        self.storage.saveTransaction(deposit_transaction)
-        transaction = self.storage.filter(self.storage.getTransactionsFrom(self.client), TRANSACTION_DEPOSIT)[0]
+        self.storage.save_transaction(deposit_transaction)
+        transaction = self.storage.filter(self.storage.get_transactions_from(self.client), TRANSACTION_DEPOSIT)[0]
         self.assertEqual(1000, transaction.amount)
 
     def test_sum(self):
@@ -84,16 +84,16 @@ class TestDatabaseStorage(TestCase):
         deposit_transaction.agent_to = self.service
         deposit_transaction.amount = 1000
         deposit_transaction.batch_id = 'custom_batch_id'
-        self.storage.saveTransaction(deposit_transaction)
+        self.storage.save_transaction(deposit_transaction)
 
         deposit_transaction = DepositTransaction()
         deposit_transaction.agent_from = self.client
         deposit_transaction.agent_to = self.service
         deposit_transaction.amount = 200
         deposit_transaction.batch_id = 'custom_batch_id'
-        self.storage.saveTransaction(deposit_transaction)
+        self.storage.save_transaction(deposit_transaction)
 
-        sum_amount = self.storage.sum(self.storage.filter(self.storage.getTransactionsFrom(self.client), TRANSACTION_DEPOSIT))
+        sum_amount = self.storage.sum(self.storage.filter(self.storage.get_transactions_from(self.client), TRANSACTION_DEPOSIT))
         self.assertEqual(1200, sum_amount)
 
     def test_transaction_reason(self):
@@ -108,8 +108,8 @@ class TestDatabaseStorage(TestCase):
         reason.save()
 
         credit_transaction.reason = reason
-        self.storage.saveTransaction(credit_transaction)
-        transaction = self.storage.filter(self.storage.getTransactionsFrom(self.client), TRANSACTION_CREDIT)[0]
+        self.storage.save_transaction(credit_transaction)
+        transaction = self.storage.filter(self.storage.get_transactions_from(self.client), TRANSACTION_CREDIT)[0]
         self.assertEqual(reason, transaction.reason)
 
 
