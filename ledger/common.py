@@ -210,7 +210,7 @@ class ClientAccount(object):
     @property
     def deposit(self):
         return account_manager.get_total_by(self.client, TRANSACTION_DEPOSIT) - account_manager.get_total_by(
-            self.client, TRANSACTION_DEBIT, from_deposit=True)
+            self.client, TRANSACTION_DEBIT, from_deposit=True) - account_manager.get_total_by(self.client, TRANSACTION_WITHDRAW)
 
     @property
     def total(self):
